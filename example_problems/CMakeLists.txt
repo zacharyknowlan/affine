@@ -9,3 +9,9 @@ target_link_libraries(HyperElasticArtery PRIVATE mfem TLIntegs)
 
 add_executable(HyperElasticLigament HyperElasticLigament.cpp)
 target_link_libraries(HyperElasticLigament PRIVATE mfem TLIntegs)
+
+add_executable(FungUniaxialExtension FungUniaxialExtension.cpp)
+target_link_libraries(FungUniaxialExtension PRIVATE mfem TLIntegs)
+
+add_executable(FungSingleInclusion FungSingleInclusion.cpp)
+target_link_libraries(FungSingleInclusion PRIVATE mfem TLIntegs)

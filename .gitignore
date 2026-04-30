@@ -4,3 +4,4 @@ meshes/*
 results/*
 !results/.gitkeep
 *__pycache__*
+*nohup.out

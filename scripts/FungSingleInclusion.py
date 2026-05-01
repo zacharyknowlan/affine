@@ -16,7 +16,7 @@ def main():
     CommandLineInput.extend(["-A5", "0."])
     CommandLineInput.extend(["-A6", "0."])
     CommandLineInput.extend(["-r_inc", str(InclusionRadius)])
-    CommandLineInput.extend(["-u_r", str(0.32*InclusionRadius)])
+    CommandLineInput.extend(["-u_r", str(-0.32*InclusionRadius)])
 
     _ = subprocess.run(CommandLineInput)
 

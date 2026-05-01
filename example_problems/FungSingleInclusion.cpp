@@ -85,7 +85,7 @@ int main(int argc, char** argv)
     ns.SetMaxIter(40);
     ns.SetPrintLevel(1);
 
-    int N_increments = 200;
+    int N_increments = 100;
     for (int i=0; i<N_increments; i++)
     {
         mfem::out << "Solving increment " << (i+1) << " out of " << N_increments << " \n";
@@ -95,27 +95,10 @@ int main(int argc, char** argv)
         ns.Mult(f, u);
     }
 
-    auto dg_ec = mfem::DG_FECollection(0, dim, mfem::BasisType::GaussLegendre);
-    auto dg_tensor_space = mfem::FiniteElementSpace(&mesh, &dg_ec, dim*dim);
-    auto dg_scalar_space = mfem::FiniteElementSpace(&mesh, &dg_ec, 1);
-
-    auto E = mfem::GridFunction(&dg_tensor_space);
-    CalcGreenLagrangeStrain(u, E);
-
-    auto sigma = mfem::GridFunction(&dg_tensor_space);
-    CalcFungCauchyStress(u, E, a_coeff, A1_coeff, A2_coeff, A3_coeff, 
-                            A4_coeff, A5_coeff, A6_coeff, sigma);
-
-    auto sigma_VM = mfem::GridFunction(&dg_scalar_space);
-    CalcVonMisesStress(sigma, sigma_VM);
-
     std::ofstream file(ResultFile);
     file.precision(16);
     mesh.PrintVTK(file, 0);
     u.SaveVTK(file, "u", 0);
-    E.SaveVTK(file, "E", 0);
-    sigma.SaveVTK(file, "sigma", 0);
-    sigma_VM.SaveVTK(file, "sigma_VM", 0);
     file.close();
 
     return 0;

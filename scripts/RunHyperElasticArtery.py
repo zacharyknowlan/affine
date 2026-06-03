@@ -7,7 +7,7 @@ pressures = [(0.016 + 0.001*i) for i in range(0,9)] # in MPa
 
 def main():
 
-    CommandLineInput = ["../build/example_problems/HyperElasticArtery"]
+    CommandLineInput = ["../build/problems/HEA"]
     CommandLineInput.extend(["--MeshFile", "../meshes/QuarterArtery.msh"])
     CommandLineInput.extend(["--ResultFile", " "])
     CommandLineInput.extend(["--lambda", str(Lambda)])

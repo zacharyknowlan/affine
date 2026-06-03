@@ -1,4 +1,4 @@
-#include "TLStressStrain.hpp"
+#include "AffineStressStrain.hpp"
 
 void CalcGreenLagrangeStrain(const mfem::GridFunction& u, mfem::GridFunction& E)
 {

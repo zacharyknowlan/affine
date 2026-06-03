@@ -3,16 +3,17 @@ from SingleInclusionMesh import InclusionRadius
 
 def main():
 
-    E = 10.
+    A0 = 10.
+    a = 200e3
     
-    CommandLineInput = ["../build/example_problems/FungSingleInclusion"]
+    CommandLineInput = ["../build/problems/FSI"]
     CommandLineInput.extend(["--MeshFile", "../meshes/SingleInclusionFarField.msh"])
     CommandLineInput.extend(["--ResultFile", "../results/FungSingleInclusion.vtk"])
-    CommandLineInput.extend(["-a", str(5.*E)])
-    CommandLineInput.extend(["-A1", str(E)])
-    CommandLineInput.extend(["-A2", str(E)])
-    CommandLineInput.extend(["-A3", str(E/2.)])
-    CommandLineInput.extend(["-A4", str(E/2.)])
+    CommandLineInput.extend(["-a", str(a)])
+    CommandLineInput.extend(["-A1", str(A0)])
+    CommandLineInput.extend(["-A2", str(A0)])
+    CommandLineInput.extend(["-A3", str(A0/2.)])
+    CommandLineInput.extend(["-A4", str(A0/2.)])
     CommandLineInput.extend(["-A5", "0."])
     CommandLineInput.extend(["-A6", "0."])
     CommandLineInput.extend(["-r_inc", str(InclusionRadius)])

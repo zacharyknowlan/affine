@@ -1,6 +1,5 @@
 #include "mfem.hpp"
-#include "TLIntegrators.hpp"
-#include "TLStressStrain.hpp"
+#include "affine.hpp"
 
 // Inclusion radius and radial displacement 
 double r_inc, u_r;
@@ -80,7 +79,7 @@ int main(int argc, char** argv)
     auto ns = mfem::NewtonSolver();
     ns.SetOperator(B);
     ns.SetPreconditioner(prec);
-    ns.SetRelTol(1e-14);
+    ns.SetRelTol(1e-12);
     ns.SetAbsTol(1e-8);
     ns.SetMaxIter(40);
     ns.SetPrintLevel(1);

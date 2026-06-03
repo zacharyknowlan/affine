@@ -1,5 +1,5 @@
-#ifndef TL_STRESS_STRAIN
-#define TL_STRESS_STRAIN
+#ifndef AFFINE_STRESS_STRAIN
+#define AFFINE_STRESS_STRAIN
 
 #include "mfem.hpp"
 

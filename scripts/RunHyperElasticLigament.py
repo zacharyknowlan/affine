@@ -9,7 +9,7 @@ displacements = [l*strain for strain in strains]
 
 def main():
 
-    CommandLineInput = ["../build/example_problems/HyperElasticLigament"]
+    CommandLineInput = ["../build/problems/HEL"]
     CommandLineInput.extend(["--MeshFile", "../meshes/HalfLigament.msh"])
     CommandLineInput.extend(["--ResultFile", " "])
     CommandLineInput.extend(["--lambda", str(Lambda)])

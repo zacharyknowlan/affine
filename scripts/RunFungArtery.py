@@ -5,7 +5,7 @@ def main():
 
     c = 20.
 
-    CommandLineInput = ["../build/example_problems/FungArtery"]
+    CommandLineInput = ["../build/problems/FA"]
     CommandLineInput.extend(["--MeshFile", "../meshes/QuarterArtery.msh"])
     CommandLineInput.extend(["--ResultFile", " "])
     CommandLineInput.extend(["--a", str(1./c)])

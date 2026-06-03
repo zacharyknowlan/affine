@@ -1,14 +1,22 @@
 #include "mfem.hpp"
-#include "TLIntegrators.hpp"
-#include "TLStressStrain.hpp"
+#include "affine.hpp"
+#include <cmath>
+
+double p_mag; // Internal pressure of the artery
+
+void p_int(const mfem::Vector& x, double pseudo_time, mfem::Vector& T) 
+{
+    T.SetSize(2);
+    double r = std::sqrt(std::pow(x[0], 2) + std::pow(x[1], 2));
+    T[0] = (x[0]/r)*p_mag;
+    T[1] = (x[1]/r)*p_mag;
+    T *= pseudo_time;
+}
 
 int main(int argc, char** argv)
 {
     // Material parameters
     double a, A1, A2, A3, A4, A5, A6;
-    
-    // Right edge displacement
-    double u_edge;
     
     // I/O parameters
     std::string MeshFile, ResultFile;
@@ -23,7 +31,7 @@ int main(int argc, char** argv)
     args.AddOption(&A4, "-A4", "--A4", "A4");
     args.AddOption(&A5, "-A5", "--A5", "A5");
     args.AddOption(&A6, "-A6", "--A6", "A6");
-    args.AddOption(&u_edge, "-u", "--u", "Right Displacement");
+    args.AddOption(&p_mag, "-p", "--p", "Internal pressure");
     args.Parse();
     if (!args.Good())
     {
@@ -51,42 +59,41 @@ int main(int argc, char** argv)
     auto A6_coeff = mfem::ConstantCoefficient(A6);
 
     mfem::Array<int> ess_tdofs, tmp_tdofs;
-    mfem::Array<int> right_edge({0, 1, 0, 0});
-    mfem::Array<int> left_edge({0, 0, 0, 1});
-    mfem::Array<int> bottom_edge({1, 0, 0, 0});
+    mfem::Array<int> horizontal_edge({1, 0, 0, 0});
+    mfem::Array<int> vertical_edge({0, 0, 1, 0});
+    mfem::Array<int> inner_arc({0, 0, 0, 1});
 
-    u_space.GetEssentialTrueDofs(right_edge, tmp_tdofs);
+    u_space.GetEssentialTrueDofs(horizontal_edge, tmp_tdofs, 1);
     ess_tdofs.Append(tmp_tdofs);
     
-    u_space.GetEssentialTrueDofs(left_edge, tmp_tdofs);
+    u_space.GetEssentialTrueDofs(vertical_edge, tmp_tdofs, 0);
     ess_tdofs.Append(tmp_tdofs);
 
-    u_space.GetEssentialTrueDofs(bottom_edge, tmp_tdofs, 1);
-    ess_tdofs.Append(tmp_tdofs);
-
+    auto T = mfem::VectorFunctionCoefficient(2, p_int);
+    
     auto B = mfem::NonlinearForm(&u_space);
     B.AddDomainIntegrator(new FungExponentialIntegrator(a_coeff, A1_coeff, A2_coeff, A3_coeff, 
                                                         A4_coeff, A5_coeff, A6_coeff));
+    B.AddBoundaryIntegrator(new PK1TractionIntegrator(T), inner_arc);
     B.SetEssentialTrueDofs(ess_tdofs);
 
     auto prec = mfem::UMFPackSolver();
     auto ns = mfem::NewtonSolver();
     ns.SetOperator(B);
     ns.SetPreconditioner(prec);
-    ns.SetRelTol(1e-14);
+    ns.SetRelTol(1e-12);
     ns.SetAbsTol(1e-8);
     ns.SetMaxIter(40);
     ns.SetPrintLevel(0);
 
-    // Right edge x dofs for incrementation
-    u_space.GetEssentialTrueDofs(right_edge, tmp_tdofs, 0);
-    int N_increments = 100; // Fung exponential model requires more increments
+    int N_increments = 100;
     for (int i=0; i<N_increments; i++)
     {
-        u.SetSubVector(tmp_tdofs, (static_cast<double>(i+1)/N_increments)*u_edge);
+        // Pseudo time is fraction of applied load
+        T.SetTime(static_cast<double>(i+1)/N_increments); 
         ns.Mult(f, u);
     }
-
+    
     auto dg_ec = mfem::DG_FECollection(0, dim, mfem::BasisType::GaussLegendre);
     auto dg_tensor_space = mfem::FiniteElementSpace(&mesh, &dg_ec, dim*dim);
     auto dg_scalar_space = mfem::FiniteElementSpace(&mesh, &dg_ec, 1);

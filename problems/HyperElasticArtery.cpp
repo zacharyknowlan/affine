@@ -1,6 +1,5 @@
 #include "mfem.hpp"
-#include "TLIntegrators.hpp"
-#include "TLStressStrain.hpp"
+#include "affine.hpp"
 #include <cmath>
 
 double p_mag; // Internal pressure of the artery
@@ -17,7 +16,7 @@ void p_int(const mfem::Vector& x, double pseudo_time, mfem::Vector& T)
 int main(int argc, char** argv)
 {
     // Material parameters
-    double a, A1, A2, A3, A4, A5, A6;
+    double lambda, mu;
     
     // I/O parameters
     std::string MeshFile, ResultFile;
@@ -25,13 +24,8 @@ int main(int argc, char** argv)
     mfem::OptionsParser args(argc, argv);
     args.AddOption(&MeshFile, "-mf", "--MeshFile", "Mesh File");
     args.AddOption(&ResultFile, "-rf", "--ResultFile", "Result File");
-    args.AddOption(&a, "-a", "--a", "a");
-    args.AddOption(&A1, "-A1", "--A1", "A1");
-    args.AddOption(&A2, "-A2", "--A2", "A2");
-    args.AddOption(&A3, "-A3", "--A3", "A3");
-    args.AddOption(&A4, "-A4", "--A4", "A4");
-    args.AddOption(&A5, "-A5", "--A5", "A5");
-    args.AddOption(&A6, "-A6", "--A6", "A6");
+    args.AddOption(&lambda, "-lambda", "--lambda", "lambda");
+    args.AddOption(&mu, "-mu", "--mu", "mu");
     args.AddOption(&p_mag, "-p", "--p", "Internal pressure");
     args.Parse();
     if (!args.Good())
@@ -51,13 +45,8 @@ int main(int argc, char** argv)
     mfem::GridFunction f(&u_space);
     f = 0.;
 
-    auto a_coeff = mfem::ConstantCoefficient(a);
-    auto A1_coeff = mfem::ConstantCoefficient(A1);
-    auto A2_coeff = mfem::ConstantCoefficient(A2);
-    auto A3_coeff = mfem::ConstantCoefficient(A3);
-    auto A4_coeff = mfem::ConstantCoefficient(A4);
-    auto A5_coeff = mfem::ConstantCoefficient(A5);
-    auto A6_coeff = mfem::ConstantCoefficient(A6);
+    auto lambda_coeff = mfem::ConstantCoefficient(lambda);
+    auto mu_coeff = mfem::ConstantCoefficient(mu);
 
     mfem::Array<int> ess_tdofs, tmp_tdofs;
     mfem::Array<int> horizontal_edge({1, 0, 0, 0});
@@ -73,8 +62,7 @@ int main(int argc, char** argv)
     auto T = mfem::VectorFunctionCoefficient(2, p_int);
     
     auto B = mfem::NonlinearForm(&u_space);
-    B.AddDomainIntegrator(new FungExponentialIntegrator(a_coeff, A1_coeff, A2_coeff, A3_coeff, 
-                                                        A4_coeff, A5_coeff, A6_coeff));
+    B.AddDomainIntegrator(new HyperElasticIntegrator(mu_coeff, lambda_coeff));
     B.AddBoundaryIntegrator(new PK1TractionIntegrator(T), inner_arc);
     B.SetEssentialTrueDofs(ess_tdofs);
 
@@ -82,12 +70,12 @@ int main(int argc, char** argv)
     auto ns = mfem::NewtonSolver();
     ns.SetOperator(B);
     ns.SetPreconditioner(prec);
-    ns.SetRelTol(1e-14);
+    ns.SetRelTol(1e-12);
     ns.SetAbsTol(1e-8);
     ns.SetMaxIter(40);
     ns.SetPrintLevel(0);
 
-    int N_increments = 100;
+    int N_increments = 50;
     for (int i=0; i<N_increments; i++)
     {
         // Pseudo time is fraction of applied load
@@ -103,8 +91,7 @@ int main(int argc, char** argv)
     CalcGreenLagrangeStrain(u, E);
 
     auto sigma = mfem::GridFunction(&dg_tensor_space);
-    CalcFungCauchyStress(u, E, a_coeff, A1_coeff, A2_coeff, A3_coeff, 
-                            A4_coeff, A5_coeff, A6_coeff, sigma);
+    CalcHyperElasticCauchyStress(u, E, mu_coeff, lambda_coeff, sigma);
 
     auto sigma_VM = mfem::GridFunction(&dg_scalar_space);
     CalcVonMisesStress(sigma, sigma_VM);

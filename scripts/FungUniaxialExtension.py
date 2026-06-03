@@ -1,19 +1,19 @@
 import subprocess
 
+A0 = 10.
+a = 200e3
 strains = [0.01*i for i in range(1,31)]
 
 def main():
 
-    E = 10.
-
-    CommandLineInput = ["../build/example_problems/FungUniaxialExtension"]
+    CommandLineInput = ["../build/problems/FUE"]
     CommandLineInput.extend(["--MeshFile", "../meshes/Square.msh"])
     CommandLineInput.extend(["--ResultFile", " "])
-    CommandLineInput.extend(["-a", str(5.*E)])
-    CommandLineInput.extend(["-A1", str(E)])
-    CommandLineInput.extend(["-A2", str(E)])
-    CommandLineInput.extend(["-A3", str(E/2.)])
-    CommandLineInput.extend(["-A4", str(E/2.)])
+    CommandLineInput.extend(["-a", str(a)])
+    CommandLineInput.extend(["-A1", str(A0)])
+    CommandLineInput.extend(["-A2", str(A0)])
+    CommandLineInput.extend(["-A3", str(A0/2.)])
+    CommandLineInput.extend(["-A4", str(A0/2.)])
     CommandLineInput.extend(["-A5", "0."])
     CommandLineInput.extend(["-A6", "0."])
     CommandLineInput.extend(["-u_x", str(strains[0])])
